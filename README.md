@@ -1,139 +1,89 @@
-Below is an updated `README.md` that **focuses on the GTK for Windows Runtime approach** (rather than MSYS2) and mentions the **`tmp_attachments`** directory for processing attachments.
-
-```markdown
 # EML to PDF Converter
 
-This tool converts `.eml` (email) files to PDF on **Windows**. It:
+A Python command-line tool to convert `.eml` (email) files to PDF on **Windows or other platforms**. This project:
 
-- Renders the email body (HTML preferred, or plain text).
-- Embeds inline images (`cid:` references).
-- Appends PDF attachments (each prefixed by a small title page).
-- Stores attachments in a local folder named **`tmp_attachments`** during processing.
+- **Extracts HTML or text** from each `.eml` email.
+- **Embeds inline images** (`cid:` references) by base64-encoding them in the PDF.
+- **Appends PDF attachments** (with a title page) to each email’s PDF.
+- **Displays email headers** (Date, From, To, CC, BCC, Subject) at the top of the PDF.
+- **Handles corrupted/unreadable PDFs** by inserting a “Broken PDF” notice page, rather than crashing.
+- Optionally **merges** all produced PDFs into a single file called `merged_all.pdf`.
+- Optionally **generates a text-based summary report** `eml2pdf.txt`.
 
----
+## 1. Installation
 
-## 1. Installation (Windows + GTK Runtime)
-
-### 1.1 Prerequisites
-
-1. **Python 3.9+**  
-   - Install from [python.org](https://www.python.org/downloads/) or the Microsoft Store.  
-   - Verify with:
-     ```powershell
-     python --version
-     ```
-
-2. **GTK for Windows Runtime**  
-   - Download from the [GTK for Windows Runtime Installer Releases](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases).  
-   - Run the `.exe` installer and **check** “Set up PATH environment variable.”  
-   - Close and reopen your terminal (so the new PATH takes effect).
-
-### 1.2 Create a Python Virtual Environment
-
-In **PowerShell** (example):
-
-```powershell
-# Navigate to your project folder
-cd "C:\path\to\the\project"
-
-# Create a new virtual environment
-python -m venv venv
-
-# Activate the venv
-.\venv\Scripts\activate
-```
-
-(On Linux/macOS, you’d do `python3 -m venv venv && source venv/bin/activate`, but this doc focuses on Windows.)
-
-### 1.3 Install Python Dependencies
-
-Inside your **activated** virtual environment
-
-```powershell
-pip install --upgrade pip
-pip install weasyprint PyPDF2
-```
-
-Verify WeasyPrint:
-
-```powershell
-python -c "import weasyprint; print('WeasyPrint OK')"
-```
-
----
+1. **Install Python 3.9+**. On Windows, also install the dependencies for [WeasyPrint](https://weasyprint.org/) (GTK for Windows Runtime or MSYS2).  
+2. Create and activate a **virtual environment** (optional, but recommended):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/macOS
+   # or .\venv\Scripts\activate in PowerShell on Windows
+   ```
+3. **Install** the required Python libraries:
+   ```bash
+   pip install weasyprint PyPDF2
+   ```
+4. **Verify** WeasyPrint can run:
+   ```bash
+   python -c "import weasyprint; print('WeasyPrint OK!')"
+   ```
 
 ## 2. Usage
 
-With your **venv** activated, run the script:
-
-```powershell
-python eml2pdf.py "C:\path\to\eml_files" "C:\path\to\output_pdfs"
+```bash
+python eml2pdf.py <EML_DIRECTORY> <OUTPUT_PDF_DIRECTORY> [--merge] [--report]
 ```
 
-- **`"C:\path\to\eml_files"`**: Directory containing `.eml` files to convert.
-- **`"C:\path\to\output_pdfs"`**: Destination for the resulting `.pdf` files.
+Examples:
+```bash
+# Basic usage (convert each EML to an individual PDF)
+python eml2pdf.py ./eml_files ./pdf_output
 
-### Temporary Attachments Folder
+# Merge all PDFs into a single file
+python eml2pdf.py ./eml_files ./pdf_output --merge
 
-The script processes attachments by **extracting them** into a directory called **`tmp_attachments`**. It then merges these attachments (if PDFs) into the final PDF, and cleans up temporary files afterward.
+# Generate a text report summarizing all results
+python eml2pdf.py ./eml_files ./pdf_output --report
 
-Feel free to customize or change the `tmp_attachments` path in the script as needed.
-
----
-
-## 3. Handling Corrupted PDFs
-
-If an **attached PDF** is **corrupted** or in an unexpected format, PyPDF2 may raise an error like:
-
-```
-PyPDF2.errors.PdfReadError: Invalid Elementary Object ...
+# Do both
+python eml2pdf.py ./eml_files ./pdf_output --merge --report
 ```
 
-By default, this halts processing. If you prefer:
+### Output
 
-- **Skip** unreadable PDF attachments, or
-- **Insert** a “Broken PDF” notice page,
+- **One `.pdf`** per `.eml` in the specified `<OUTPUT_PDF_DIRECTORY>`.
+- If `--merge` is used, a **`merged_all.pdf`** containing all generated PDFs.
+- If `--report` is used, a **`eml2pdf.txt`** text file with a final summary (e.g., total `.eml` files, how many PDF attachments were processed, which attachments were broken).
 
-you can modify the script’s `try/except` logic around the PyPDF2 `append()` call.
+## 3. Handling Broken Attachments
 
----
+Some PDF attachments may be corrupted or use features that PyPDF2 can’t parse. This script:
+- **Catches all exceptions** when merging each PDF attachment.
+- Logs a warning and inserts a “Broken PDF” notice page for that attachment.
+- Records the filename in a broken attachments list, visible in the final summary.
 
 ## 4. Project Structure
 
 A typical layout:
-
 ```
 eml2pdf.py
-venv/
-    (your virtual environment)
 tmp_attachments/
-    (created automatically for attachments)
+venv/
 requirements.txt
 README.md
 ```
-
-**`eml2pdf.py`** is your main script for:
-1. Parsing `.eml` files
-2. Embedding inline images
-3. Appending PDF attachments (stored temporarily in `tmp_attachments`)
-4. Generating final PDFs
-
----
+Where **`tmp_attachments/`** is automatically created for storing temporary PDFs (title pages, broken notices, etc.) during processing.
 
 ## 5. License
 
-(C) 2025 **Rafael Borja**  
-Licensed under [Apache 2.0](LICENSE).
-
-You’re free to copy, modify, and distribute under these terms.
+(C) 2025 Rafael Borja  
+Distributed under the [Apache 2.0 License](LICENSE).
 
 ---
 
-## 6. Troubleshooting
 
-- **Missing DLL error (`gobject-2.0-0`, etc.)**:
-    - Confirm GTK for Windows is installed and you checked the box to update `PATH`.
-- **WeasyPrint Warnings** (`GLib-GIO-WARNING: Unexpectedly, UWP app…`):
-    - Often harmless. You can ignore them, or try setting environment variables (e.g. `G_MESSAGES_DEBUG=none`).
-- **PermissionError** when deleting temp files on Windows:
-    - Ensure you only remove them after PyPDF2 finishes merging (i.e., after `merger.close()`).
+### Final Notes
+
+- **Broken Attachments**: Now any attachment that fails for *any reason* gets flagged in `broken_pdfs`, ensuring the summary report is accurate.  
+- **WeasyPrint** on Windows: Make sure you install the required **GTK** or **MSYS2** dependencies so WeasyPrint can find Pango/Cairo/GLib.  
+- **MIME-Encoded Headers**: The script decodes these using Python’s `decode_header`, so accented subjects, etc. show up properly.
