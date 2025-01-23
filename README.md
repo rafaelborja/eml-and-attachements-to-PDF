@@ -12,7 +12,7 @@ A Python command-line tool to convert `.eml` (email) files to PDF on **Windows o
 
 ## 1. Installation
 
-1. **Install Python 3.9+**. On Windows, also install the dependencies for [WeasyPrint](https://weasyprint.org/) (GTK for Windows Runtime or MSYS2).  
+1. **Install Python 3.9+**. On Windows, also install the dependencies for [WeasyPrint](https://weasyprint.org/) (GTK for Windows Runtime or MSYS2).
 2. Create and activate a **virtual environment** (optional, but recommended):
    ```bash
    python -m venv venv
@@ -84,6 +84,6 @@ Distributed under the [Apache 2.0 License](LICENSE).
 
 ### Final Notes
 
-- **Broken Attachments**: Now any attachment that fails for *any reason* gets flagged in `broken_pdfs`, ensuring the summary report is accurate.  
-- **WeasyPrint** on Windows: Make sure you install the required **GTK** or **MSYS2** dependencies so WeasyPrint can find Pango/Cairo/GLib.  
+- **Broken Attachments**: Now any attachment that fails for *any reason* gets flagged in `broken_pdfs`, ensuring the summary report is accurate.
+- **WeasyPrint** on Windows: Make sure you install the required **GTK** or **MSYS2** dependencies so WeasyPrint can find Pango/Cairo/GLib.
 - **MIME-Encoded Headers**: The script decodes these using Python’s `decode_header`, so accented subjects, etc. show up properly.
