@@ -1,0 +1,3 @@
+WeasyPrint
+PyPDF2
+weasyprint
